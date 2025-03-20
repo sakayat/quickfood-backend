@@ -24,6 +24,12 @@ class CreateRestaurantAPIView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        if Restaurant.objects.filter(owner=request.user).exists():
+            return Response(
+                {"error": "restaurant already exits"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         serializer = RestaurantCreateSerializer(
             data=request.data, context={"request": request}
         )

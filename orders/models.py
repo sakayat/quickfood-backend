@@ -8,6 +8,7 @@ ORDER_STATUS = [
     ("Preparing", "Preparing"),
     ("Out for Delivery", "Out for Delivery"),
     ("Delivered", "Delivered"),
+    ("cancelled", "Cancelled"),
 ]
 
 class Order(models.Model):

@@ -11,10 +11,20 @@ class RestaurantCreateSerializer(serializers.ModelSerializer):
 
 
 class MenuSerializer(serializers.ModelSerializer):
+    restaurant_id = serializers.IntegerField(source="restaurant.id", read_only=True)
+
     class Meta:
         model = Menu
-        fields = ("id", "name", "description", "price", "created_at", "updated_at")
-        read_only_fields = ("created_at", "updated_at")
+        fields = [
+            "id",
+            "name",
+            "description",
+            "price",
+            "restaurant_id",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["restaurant_id", "created_at", "updated_at"]
 
 
 class RestaurantSerializer(serializers.ModelSerializer):
