@@ -57,3 +57,12 @@ class LoginApiView(APIView):
     def get_tokens_for_user(self, user):
         refresh = RefreshToken.for_user(user)
         return {"refresh": str(refresh), "access": str(refresh.access_token)}
+
+
+class UserProfileView(APIView):
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
