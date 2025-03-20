@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CreateRestaurantAPIView, UpdateRestaurantAPIView
+from .views import CreateRestaurantAPIView, UpdateRestaurantAPIView, CreateMenuAPIView
 
 urlpatterns = [
     path(
@@ -12,4 +12,5 @@ urlpatterns = [
         UpdateRestaurantAPIView.as_view(),
         name="update-restaurant",
     ),
+    path("create-menus/", CreateMenuAPIView.as_view(), name="create-menus"),
 ]

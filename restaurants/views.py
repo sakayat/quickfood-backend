@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import permissions, status
-from .serializers import RestaurantCreateSerializer
+from .serializers import RestaurantCreateSerializer, MenuSerializer
 from .models import Restaurant
 
 # Create your views here.
@@ -67,3 +67,27 @@ class UpdateRestaurantAPIView(APIView):
             }
             return Response(response_data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CreateMenuAPIView(APIView):
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        if request.user.role != "restaurant_owner":
+            return Response(
+                {"error": "Only restaurant owners can add menu items"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        restaurant = Restaurant.objects.get(owner=request.user)
+
+        serializer = MenuSerializer(data=request.data, context={"request": request})
+
+        if serializer.is_valid():
+            menu_item = serializer.save(restaurant=restaurant)
+            return Response(
+                MenuSerializer(menu_item).data, status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
