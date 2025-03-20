@@ -4,6 +4,7 @@ from .views import (
     UpdateRestaurantAPIView,
     CreateMenuAPIView,
     UpdateMenuAPIView,
+    RestaurantDetailAPIView,
 )
 
 urlpatterns = [
@@ -19,4 +20,9 @@ urlpatterns = [
     ),
     path("create-menus/", CreateMenuAPIView.as_view(), name="create-menus"),
     path("menu-update/<int:menu_id>/", UpdateMenuAPIView.as_view(), name="menu-update"),
+    path(
+        "restaurant/<int:restaurant_id>/",
+        RestaurantDetailAPIView.as_view(),
+        name="restaurant-detail",
+    ),
 ]
