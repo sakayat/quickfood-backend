@@ -46,3 +46,22 @@ class UserSerializer(serializers.ModelSerializer):
             "role",
             "profile_image",
         ]
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = User 
+        fields = ["first_name", "last_name", "phone_number", "address", "profile_image"]
+        
+    def update(self, instance, validated_data):
+        instance.first_name = validated_data.get("first_name", instance.first_name)
+        instance.last_name = validated_data.get("last_name", instance.last_name)
+        instance.phone_number = validated_data.get("phone_number", instance.phone_number)
+        instance.address = validated_data.get("address", instance.address)
+        
+        if "profile_image" in validated_data:
+            instance.profile_image = validated_data.get("profile_image")
+        
+        instance.save()
+        return instance
