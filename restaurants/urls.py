@@ -7,6 +7,8 @@ from .views import (
     RestaurantDetailAPIView,
     DeleteRestaurantAPIView,
     DeleteMenuItemAPIView,
+    RestaurantListAPIView,
+    
 )
 
 urlpatterns = [
@@ -37,4 +39,5 @@ urlpatterns = [
         DeleteMenuItemAPIView.as_view(),
         name="delete-menu",
     ),
+    path("restaurants/", RestaurantListAPIView.as_view(), name="restaurant-list"),
 ]

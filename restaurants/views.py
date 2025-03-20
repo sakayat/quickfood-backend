@@ -7,6 +7,7 @@ from .serializers import (
     RestaurantCreateSerializer,
     MenuSerializer,
     RestaurantSerializer,
+    RestaurantListSerializer,
 )
 from .models import Restaurant, Menu
 from django.http import Http404
@@ -207,3 +208,14 @@ class DeleteMenuItemAPIView(APIView):
         return Response(
             {"message": "Menu item deleted successfully"}, status=status.HTTP_200_OK
         )
+
+
+class RestaurantListAPIView(APIView):
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+
+        restaurants = Restaurant.objects.all()
+        serializer = RestaurantListSerializer(restaurants, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
