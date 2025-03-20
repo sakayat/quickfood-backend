@@ -5,7 +5,8 @@ from .views import (
     CreateMenuAPIView,
     UpdateMenuAPIView,
     RestaurantDetailAPIView,
-    DeleteRestaurantAPIView
+    DeleteRestaurantAPIView,
+    DeleteMenuItemAPIView,
 )
 
 urlpatterns = [
@@ -26,5 +27,14 @@ urlpatterns = [
         RestaurantDetailAPIView.as_view(),
         name="restaurant-detail",
     ),
-    path('delete-restaurant/', DeleteRestaurantAPIView.as_view(), name='delete-restaurant'),
+    path(
+        "delete-restaurant/",
+        DeleteRestaurantAPIView.as_view(),
+        name="delete-restaurant",
+    ),
+    path(
+        "delete-menu/<int:id>/",
+        DeleteMenuItemAPIView.as_view(),
+        name="delete-menu",
+    ),
 ]

@@ -115,7 +115,7 @@ class UpdateMenuAPIView(APIView):
             menu = Menu.objects.get(id=menu_id, restaurant=restaurant)
             return menu
         except Menu.DoesNotExist:
-            raise Http404(f"Menu item with id {menu_id} not found in your restaurant")
+            raise Http404(f"Menu item with id not found")
 
     def put(self, request, menu_id):
         menu = self.get_object(menu_id)
@@ -170,4 +170,40 @@ class DeleteRestaurantAPIView(APIView):
         return Response(
             {"message": f"Restaurant has been successfully deleted"},
             status=status.HTTP_200_OK,
+        )
+
+
+class DeleteMenuItemAPIView(APIView):
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, id):
+
+        if self.request.user.role != "restaurant_owner":
+            return Response(
+                {"error": "Only restaurant owners can delete menu items"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            restaurant = Restaurant.objects.get(owner=self.request.user)
+        except Restaurant.DoesNotExist:
+            return Response(
+                {"error": "You don't have a restaurant"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        try:
+            menu = Menu.objects.get(id=id, restaurant=restaurant)
+            return menu
+        except Menu.DoesNotExist:
+            raise Http404(f"Menu item not found")
+
+    def delete(self, request, id):
+
+        menu = self.get_object(id)
+        menu.delete()
+
+        return Response(
+            {"message": "Menu item deleted successfully"}, status=status.HTTP_200_OK
         )
