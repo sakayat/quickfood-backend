@@ -219,3 +219,32 @@ class RestaurantListAPIView(APIView):
         restaurants = Restaurant.objects.all()
         serializer = RestaurantListSerializer(restaurants, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class MenuListAPIView(APIView):
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+
+        menu_items = Menu.objects.all()
+        serializer = MenuSerializer(menu_items, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class MenuDetailAPIView(APIView):
+
+    permission_classes = [permissions.AllowAny]
+
+    def get_object(self, id):
+
+        try:
+            return Menu.objects.get(id=id)
+        except Menu.DoesNotExist:
+            raise Http404("Menu item not found")
+
+    def get(self, request, id):
+
+        menu_item = self.get_object(id)
+        serializer = MenuSerializer(menu_item, many=False)
+        return Response(serializer.data, status=status.HTTP_200_OK)
