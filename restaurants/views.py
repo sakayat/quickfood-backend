@@ -143,3 +143,31 @@ class RestaurantDetailAPIView(APIView):
 
         serializer = RestaurantSerializer(restaurant)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class DeleteRestaurantAPIView(APIView):
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request):
+
+        if request.user.role != "restaurant_owner":
+            return Response(
+                {"error": "Only restaurant owners can delete restaurants"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            restaurant = Restaurant.objects.get(owner=request.user)
+        except Restaurant.DoesNotExist:
+            return Response(
+                {"error": "You don't have a restaurant to delete"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        restaurant.delete()
+
+        return Response(
+            {"message": f"Restaurant has been successfully deleted"},
+            status=status.HTTP_200_OK,
+        )
