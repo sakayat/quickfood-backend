@@ -4,12 +4,7 @@ from restaurants.models import Restaurant, Menu
 
 # Create your models here.
 
-ORDER_STATUS = [
-    ("Preparing", "Preparing"),
-    ("Out for Delivery", "Out for Delivery"),
-    ("Delivered", "Delivered"),
-    ("cancelled", "Cancelled"),
-]
+
 
 class Order(models.Model):
     user = models.ForeignKey(
@@ -18,7 +13,7 @@ class Order(models.Model):
     restaurant = models.ForeignKey(
         Restaurant, on_delete=models.CASCADE, related_name="orders"
     )
-    status = models.CharField(max_length=20, choices=ORDER_STATUS, default="pending")
+    status = models.CharField(max_length=20, default="pending")
     delivery_address = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -41,8 +36,8 @@ class OrderItem(models.Model):
 
 
 class OrderStatus(models.Model):
-    order = models.OneToOneField(Order, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=ORDER_STATUS, default="Preparing")
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, default="preparing")
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):

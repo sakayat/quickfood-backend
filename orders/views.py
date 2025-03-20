@@ -4,6 +4,7 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from .models import Restaurant, Menu, Order, OrderItem, OrderStatus
 from .serializers import OrderSerializer
+from django.http import Http404
 
 # Create your views here.
 
@@ -118,3 +119,47 @@ class UserOrderListAPIView(APIView):
             {"count": orders.count(), "orders": serializer.data},
             status=status.HTTP_200_OK,
         )
+
+
+class UpdateOrderStatusAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, order_id):
+        user = self.request.user
+        try:
+            if user.role == "restaurant_owner":
+                order = Order.objects.get(id=order_id, restaurant__owner=user)
+            else:
+                return Response(
+                    {"detail": "You don't have permission to update the order status"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            return order
+        except Order.DoesNotExist:
+            return Response(
+                {"detail": f"order id not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    def post(self, request, id):
+
+        order = self.get_object(id)
+
+        if isinstance(order, Response):
+            return order
+
+        new_status = request.data.get("status")
+
+        if not new_status:
+            return Response(
+                {"detail": "Status field is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        order.status = new_status
+        order.save()
+
+        OrderStatus.objects.create(order=order, status=new_status)
+
+        serializer = OrderSerializer(order)
+
+        return Response({"message": f"Order status updated", "order": serializer.data})
