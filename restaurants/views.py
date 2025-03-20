@@ -4,7 +4,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import permissions, status
 from .serializers import RestaurantCreateSerializer, MenuSerializer
-from .models import Restaurant
+from .models import Restaurant, Menu
+from django.http import Http404
 
 # Create your views here.
 
@@ -91,3 +92,33 @@ class CreateMenuAPIView(APIView):
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class UpdateMenuAPIView(APIView):
+
+    def get_object(self, menu_id):
+        if self.request.user.role != "restaurant_owner":
+            return Response(
+                {"error": "Only restaurant owners can update menu items"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            restaurant = Restaurant.objects.get(owner=self.request.user)
+        except Restaurant.DoesNotExist:
+            raise Http404("You don't have any restaurant to update")
+
+        try:
+            menu = Menu.objects.get(id=menu_id, restaurant=restaurant)
+            return menu
+        except Menu.DoesNotExist:
+            raise Http404(f"Menu item with id {menu_id} not found in your restaurant")
+
+    def put(self, request, menu_id):
+        menu = self.get_object(menu_id)
+        serializer = MenuSerializer(menu, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
