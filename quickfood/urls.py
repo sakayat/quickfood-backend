@@ -7,4 +7,6 @@ urlpatterns = [
     path('api/users/', include('users.urls')),
     # restaurant endpoints
     path('api/', include('restaurants.urls')),
+    # orders endpoints
+    path('api/', include('orders.urls')),
 ]
