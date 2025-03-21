@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from .models import Restaurant, Menu, Order, OrderItem, OrderStatus
+from .serializers import OrderSerializer
 
 # Create your views here.
 
@@ -38,7 +39,6 @@ class CreateOrderAPIView(APIView):
 
         total_amount = 0
         order_items = []
-        menu_items = []
 
         for item_data in items_data:
             if "menu_item_id" not in item_data:
@@ -70,16 +70,6 @@ class CreateOrderAPIView(APIView):
                 {"menu_item": menu_item, "quantity": quantity, "price": price}
             )
 
-            menu_items.append(
-                {
-                    "id": menu_item.id,
-                    "name": menu_item.name,
-                    "quantity": quantity,
-                    "price": price,
-                    "subtotal": price * quantity,
-                }
-            )
-
         order = Order.objects.create(
             user=request.user,
             restaurant=restaurant,
@@ -100,7 +90,6 @@ class CreateOrderAPIView(APIView):
         response_data = {
             "order_id": order.id,
             "restaurant": {"id": restaurant.id, "name": restaurant.name},
-            "items": menu_items,
             "total_amount": total_amount,
             "status": order.status,
             "delivery_address": order.delivery_address,
@@ -108,3 +97,24 @@ class CreateOrderAPIView(APIView):
         }
 
         return Response(response_data, status=status.HTTP_201_CREATED)
+
+
+class UserOrderListAPIView(APIView):
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+
+        user = request.user
+
+        orders = Order.objects.filter(user=user)
+
+        sort_by = request.query_params.get("sort_by", "-created_at")
+        orders = orders.order_by(sort_by)
+
+        serializer = OrderSerializer(orders, many=True)
+
+        return Response(
+            {"count": orders.count(), "orders": serializer.data},
+            status=status.HTTP_200_OK,
+        )
