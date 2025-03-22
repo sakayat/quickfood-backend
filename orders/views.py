@@ -163,3 +163,27 @@ class UpdateOrderStatusAPIView(APIView):
         serializer = OrderSerializer(order)
 
         return Response({"message": f"Order status updated", "order": serializer.data})
+
+
+class RestaurantOrdersAPIView(APIView):
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        if request.user.role != "restaurant_owner":
+            return Response(
+                {"error": "restaurant owners can access"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+            
+        try:
+            restaurant = Restaurant.objects.get(owner=request.user)
+        except Restaurant.DoesNotExist:
+            return Response(
+                {"error": "You don't have a restaurant"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+            
+        orders = Order.objects.filter(restaurant=restaurant).order_by('-created_at')
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
