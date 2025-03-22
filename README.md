@@ -57,7 +57,7 @@ QuickFood is a robust food delivery API built with Django and Django REST Framew
 1. Clone the repository:
    ```
    git clone https://github.com/sakayat/quickfood-backend.git
-   cd quickfood
+   cd quickfood-backend
    ```
 
 2. Create and activate a virtual environment:
