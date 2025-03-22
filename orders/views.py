@@ -12,7 +12,7 @@ from django.http import Http404
 class CreateOrderAPIView(APIView):
 
     permission_classes = [permissions.IsAuthenticated]
-
+    
     def post(self, request):
         if request.user.role != "user":
             return Response(
@@ -20,7 +20,7 @@ class CreateOrderAPIView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        required_fields = ["restaurant_id", "items", "delivery_address"]
+        required_fields = ["items", "delivery_address"]
 
         for field in required_fields:
             if field not in request.data:
@@ -29,75 +29,92 @@ class CreateOrderAPIView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        try:
-            restaurant = Restaurant.objects.get(id=request.data["restaurant_id"])
-        except Restaurant.DoesNotExist:
-            return Response(
-                {"error": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND
-            )
-
         items_data = request.data["items"]
-
-        total_amount = 0
-        order_items = []
-
+        delivery_address = request.data["delivery_address"]
+        
+        items_by_restaurant = {}
+        
         for item_data in items_data:
             if "menu_item_id" not in item_data:
                 return Response(
+                    {"error": "menu_item_id is required for each item"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
             try:
-                menu_item = Menu.objects.get(
-                    id=item_data["menu_item_id"], restaurant=restaurant
-                )
+                menu_item = Menu.objects.get(id=item_data["menu_item_id"])
+                restaurant_id = menu_item.restaurant.id
+                
+                if restaurant_id not in items_by_restaurant:
+                    items_by_restaurant[restaurant_id] = {
+                        "restaurant": menu_item.restaurant,
+                        "items": []
+                    }
+                
+                quantity = item_data.get("quantity", 1)
+                if quantity < 1:
+                    return Response(
+                        {"error": "Quantity must be at least 1"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                items_by_restaurant[restaurant_id]["items"].append({
+                    "menu_item": menu_item,
+                    "quantity": quantity,
+                    "price": menu_item.price
+                })
+                
             except Menu.DoesNotExist:
                 return Response(
-                    {"error": "item not found"},
+                    {"error": f"Menu item with ID {item_data['menu_item_id']} not found"},
                     status=status.HTTP_404_NOT_FOUND,
                 )
+  
+        if not items_by_restaurant:
+            return Response(
+                {"error": "No valid items to order"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+ 
+        created_orders = []
+        
+        for restaurant_id, restaurant_data in items_by_restaurant.items():
+            restaurant = restaurant_data["restaurant"]
+            order_items = restaurant_data["items"]
+  
+            total_amount = sum(item["price"] * item["quantity"] for item in order_items)
 
-            quantity = item_data.get("quantity", 1)
-            if quantity < 1:
-                return Response(
-                    {"error": "Quantity must be at least 1"},
-                    status=status.HTTP_400_BAD_REQUEST,
+            order = Order.objects.create(
+                user=request.user,
+                restaurant=restaurant,
+                status="pending",
+                delivery_address=delivery_address,
+            )
+            
+            for item_data in order_items:
+                OrderItem.objects.create(
+                    order=order,
+                    menu_item=item_data["menu_item"],
+                    quantity=item_data["quantity"],
+                    price=item_data["price"],
                 )
+            
 
-            price = menu_item.price
-            total_amount += price * quantity
-
-            order_items.append(
-                {"menu_item": menu_item, "quantity": quantity, "price": price}
-            )
-
-        order = Order.objects.create(
-            user=request.user,
-            restaurant=restaurant,
-            status="pending",
-            delivery_address=request.data["delivery_address"],
+            OrderStatus.objects.create(order=order, status="pending")
+            
+            created_orders.append({
+                "order_id": order.id,
+                "restaurant": {"id": restaurant.id, "name": restaurant.name},
+                "total_amount": total_amount,
+                "status": order.status,
+                "delivery_address": order.delivery_address,
+                "created_at": order.created_at,
+            })
+        
+        return Response(
+            {"message": "Orders created successfully", "orders": created_orders},
+            status=status.HTTP_201_CREATED
         )
-
-        for item_data in order_items:
-            OrderItem.objects.create(
-                order=order,
-                menu_item=item_data["menu_item"],
-                quantity=item_data["quantity"],
-                price=item_data["price"],
-            )
-
-        OrderStatus.objects.create(order=order, status="pending")
-
-        response_data = {
-            "order_id": order.id,
-            "restaurant": {"id": restaurant.id, "name": restaurant.name},
-            "total_amount": total_amount,
-            "status": order.status,
-            "delivery_address": order.delivery_address,
-            "created_at": order.created_at,
-        }
-
-        return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 class UserOrderListAPIView(APIView):
