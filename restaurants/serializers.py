@@ -6,7 +6,7 @@ class RestaurantCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Restaurant
-        fields = ["id", "name", "description", "location", "created_at", "updated_at"]
+        fields = ["id", "name", "description", "location", "image", "created_at", "updated_at"]
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
@@ -20,6 +20,7 @@ class MenuSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "price",
+            "image",
             "restaurant_id",
             "created_at",
             "updated_at",
@@ -39,6 +40,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "location",
+            "image",
             "owner_name",
             "menus",
         ]
@@ -49,4 +51,4 @@ class RestaurantListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Restaurant
-        fields = ["id", "name", "description", "location"]
+        fields = ["id", "name", "description", "location", "image"]

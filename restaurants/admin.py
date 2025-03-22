@@ -9,6 +9,7 @@ class RestaurantAdmin(admin.ModelAdmin):
     list_filter = ("location", "created_at")
     search_fields = ("name", "description", "location")
     readonly_fields = ("created_at", "updated_at")
+    fields = ("name", "owner", "description", "location", "image", "created_at", "updated_at")
 
 
 @admin.register(Menu)
@@ -17,3 +18,4 @@ class MenuAdmin(admin.ModelAdmin):
     list_filter = ("restaurant", "created_at")
     search_fields = ("name", "description")
     readonly_fields = ("created_at", "updated_at")
+    fields = ("name", "restaurant", "description", "price", "image", "created_at", "updated_at")
