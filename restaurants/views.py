@@ -280,3 +280,20 @@ class RestaurantMenuItemsAPIView(APIView):
         serializer = MenuSerializer(menu_items, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+
+class OwnerRestaurantListAPIView(APIView):
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        
+        if request.user.role != "restaurant_owner":
+            return Response(
+                {"error": "restaurant owners can access"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        restaurants = Restaurant.objects.filter(owner=request.user)
+        serializer = RestaurantListSerializer(restaurants, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
