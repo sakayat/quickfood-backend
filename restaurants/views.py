@@ -36,14 +36,7 @@ class CreateRestaurantAPIView(APIView):
 
         if serializer.is_valid():
             restaurant = serializer.save(owner=request.user)
-
-            response_data = {
-                "id": restaurant.id,
-                "owner": restaurant.owner.id,
-                "name": restaurant.name,
-                "description": restaurant.description,
-                "location": restaurant.location,
-            }
+        
             return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -69,14 +62,7 @@ class UpdateRestaurantAPIView(APIView):
 
         if serializer.is_valid():
             restaurant = serializer.save()
-
-            response_data = {
-                "id": restaurant.id,
-                "owner": restaurant.owner.id,
-                "name": restaurant.name,
-                "description": restaurant.description,
-                "location": restaurant.location,
-            }
+            
             return Response(response_data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
